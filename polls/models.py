@@ -26,3 +26,8 @@ class Choice(models.Model):
     def __str__(self):
         return self.choice_text
     
+class FileUpload(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    file = models.FileField(upload_to="uploads/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    

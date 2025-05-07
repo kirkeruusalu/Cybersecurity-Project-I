@@ -1,4 +1,4 @@
-# Django-specific
+
 __pycache__/
 *.py[cod]
 *.sqlite3
@@ -9,10 +9,8 @@ db.sqlite3
 media/
 staticfiles/
 
-# Environment variables
 .env
-
-# VSCode/IDE
+/uploads/
 .vscode/
 .idea/
 
