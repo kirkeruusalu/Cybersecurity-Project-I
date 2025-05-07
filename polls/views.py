@@ -1,6 +1,6 @@
 from django.db.models import F
 from django.urls import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template import loader
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.views import LoginView, LogoutView
@@ -14,15 +14,25 @@ class IndexView(generic.ListView):
     context_object_name = "latest_question_list"
 
     def get_queryset(self):
-        return Question.objects.order_by("-pub_date")[:5]
+        return Question.objects.filter(owner=self.request.user).order_by("-pub_date")[:5]
     
 class DetailView(generic.DetailView):
     model = Question
     template_name = "polls/detail.html"
 
+    """Flaw 1: comment this out to fix flaw
+    def get_queryset(self):
+        return Question.objects.filter(owner=self.request.user)
+    """
+
 class ResultsView(generic.DetailView):
     model = Question
     template_name = "polls/results.html"
+
+    """Flaw 1: comment this out to fix flaw
+    def get_queryset(self):
+        return Question.objects.filter(owner=self.request.user)
+    """
 
 class CustomLoginView(LoginView):
     template_name = "polls/registration/login.html"
@@ -35,6 +45,11 @@ def beginning(request):
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
+    """Flaw 1: comment this out to fix flaw
+    if question.owner != request.user:
+        return HttpResponseForbidden("You are not allowed to vote on this")
+    """
+    
     try:
         selected_choice = question.choice_set.get(pk=request.POST["choice"])
     except (KeyError, Choice.DoesNotExist):
