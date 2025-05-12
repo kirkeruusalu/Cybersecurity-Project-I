@@ -1,0 +1,17 @@
+{% block content %}
+<h2>Search Results</h2>
+{% if results %}
+    <ul class="question-list">
+    {% for result in results %}
+        <li>
+            <a href="{% url 'polls:detail' result.0 %}">{{ result.1 }}</a>
+            <span style="color: #666; font-size: 0.9em;">(ID: {{ result.0 }})</span>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No results found.</p>
+{% endif %}
+
+<a href="{% url 'polls:search' %}">Search again</a>
+{% endblock %} 

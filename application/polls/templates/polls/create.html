@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Poll</title>
+</head>
+<body>
+  <h2>Create a New Poll</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="question_text">Question:</label><br>
+    <input type="text" id="question_text" name="question_text" required><br><br>
+
+    <label>Choices:</label><br>
+    <input type="text" name="choice_text[]" required><br>
+    <input type="text" name="choice_text[]" required><br>
+
+    <div id="more-choices"></div>
+    <button type="button" onclick="addChoice()">Add Choice</button><br><br>
+
+    <input type="submit" value="Create">
+  </form>
+
+  <script>
+    function addChoice() {
+      const container = document.getElementById("more-choices");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.name = "choice_text[]";
+      input.required = true;
+      container.appendChild(input);
+      container.appendChild(document.createElement("br"));
+    }
+  </script>
+</body>
+</html>
+

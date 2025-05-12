@@ -1,0 +1,17 @@
+{% block content %}
+  <h2>Search Questions</h2>
+  <form method="get" action="{% url 'polls:search' %}">
+      <input type="text" name="q" placeholder="Search questions..." value="{{ request.GET.q }}">
+      <button type="submit">Search</button>
+  </form>
+
+  {% if results %}
+    <ul>
+      {% for question in results %}
+        <li>{{ question.1 }}</li>  {# question.1 assumes question_text is at index 1 from raw SQL #}
+      {% endfor %}
+    </ul>
+  {% elif request.GET.q %}
+    <p>No results found.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+        <li>
+            <a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a>
+
+            {% if question.owner == user %}
+                <strong>(You own this)</strong>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
+
+<p>
+    <a href="{% url 'polls:create' %}">Create a new poll</a> |
+    <a href="{% url 'polls:search' %}">Search for polls</a> |
+    <a href="{% url 'polls:beginning' %}">Logout</a>
+</p>
