@@ -1,11 +1,8 @@
 
 __pycache__/
 *.py[cod]
-*.sqlite3
-*.log
 *.pot
-*.pyc
-db.sqlite3
+*.pyc3
 media/
 staticfiles/
 
