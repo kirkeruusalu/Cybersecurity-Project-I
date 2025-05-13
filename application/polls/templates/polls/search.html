@@ -8,7 +8,7 @@
   {% if results %}
     <ul>
       {% for question in results %}
-        <li>{{ question.1 }}</li>  {# question.1 assumes question_text is at index 1 from raw SQL #}
+        <li>{{ question.1 }}</li>
       {% endfor %}
     </ul>
   {% elif request.GET.q %}

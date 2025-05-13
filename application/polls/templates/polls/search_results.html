@@ -4,7 +4,7 @@
     <ul class="question-list">
     {% for result in results %}
         <li>
-            <a href="{% url 'polls:detail' result.0 %}">{{ result.1 }}</a>
+            <a href="{% url 'polls:results' result.1 %}">{{ result.0 }}</a>
             <span style="color: #666; font-size: 0.9em;">(ID: {{ result.0 }})</span>
         </li>
     {% endfor %}

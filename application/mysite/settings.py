@@ -27,6 +27,7 @@ SECRET_KEY = 'django-insecure-s2f0bwow&%5=a&*dh*i*lbiwj_wpou8r@b8hsp#-w&*(rgvqe7
 DEBUG = True
 ALLOWED_HOSTS = []
 
+
 """Flaw 4 fix: Use this instead of the current DEBUG=True
 DEBUG = False
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
@@ -131,7 +132,7 @@ LOGIN_REDIRECT_URL = "/index/"
 LOGOUT_REDIRECT_URL = "/polls/login/"
 
 
-"""Flaw 5 fix: Uncomment this """
+"""Flaw 5 fix: Uncomment this
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -153,4 +154,4 @@ LOGGING = {
        
     },
 }
-
+"""

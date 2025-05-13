@@ -53,7 +53,7 @@ class CustomLoginView(LoginView):
 
     def form_valid(self, form):
         user = form.get_user()
-        logger.info(f"User '{user} logged in.")
+       #Flaw 5 fix: logger.info(f"User '{user} logged in.")
         return super().form_valid(form)
 
 
@@ -61,7 +61,7 @@ class CustomLogoutView(LogoutView):
     template_name = "polls/registration/login.html"
 
     def dispatch(self, request, *args, **kwargs):
-        logger.info(f"User '{request.user}', logged out.")
+       #Flaw 5 fix: logger.info(f"User '{request.user}', logged out.")
         return super().dispatch(request, *args, **kwargs)
 
 def beginning(request):
@@ -85,7 +85,7 @@ def vote(request, question_id):
     else:
         selected_choice.votes = F("votes") + 1
         selected_choice.save()
-        logger.info(f"User '{request.user.username}' voted on question ID {question.id}, choice ID {selected_choice.id}")
+        #Flaw 5 fix: logger.info(f"User '{request.user.username}' voted on question ID {question.id}, choice ID {selected_choice.id}")
         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
 
 
@@ -97,15 +97,14 @@ def register(request):
 
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
-            logger.warning(f"Failed registration: password mismatch for '{username}'")
+            # FLaw 5 fix: logger.warning(f"Failed registration: password mismatch for '{username}'")
         elif User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
-            logger.warning(f"Failed registration: username '{username}' already exists")
+            # Flaw 5 fix: logger.warning(f"Failed registration: username '{username}' already exists")
         else:
             return redirect("polls:index")
 
     return render(request, "polls/registration/register.html")
-
 
 """
 Flaw 2 fix: use this instead of the previous register function:
@@ -144,29 +143,10 @@ def search_questions(request):
     if not search_term:
         return render(request, "polls/search.html", {"results": []})
 
-    query = f"SELECT * FROM polls_question WHERE question_text LIKE '%{search_term}%'"
-    conn = sqlite3.connect("db.sqlite3")
-    cursor = conn.cursor()
-    cursor.execute(query)
-    results = cursor.fetchall()
-    conn.close()
-
-    return render(request, "polls/search_results.html", {"results": results})
-
-
-"""Flaw 3: replace the previous function with this one to fix:
-@login_required
-def search_questions(request):
-    search_term = request.GET.get("q", "").strip()
-
-    if not search_term:
-        return render(request, "polls/search.html", {"results": []})
-    
     results = Question.objects.filter(
         question_text__icontains=search_term)
 
     return render(request, "polls/search_results.html", {"results": results})
-"""
 
 @login_required
 def create_question(request):
@@ -184,34 +164,7 @@ def create_question(request):
     return render(request, "polls/create.html")
 
 
-"""Flaw 3: Use this instead of the previous create_question function to fix flaw
-@login_required
-def create_question(request):
-    if request.method == "POST":
-        question_text = request.POST.get("question_text")
-        choice_texts = request.POST.getlist("choice_text[]")
-        owner_id = request.user.id
-
-        conn = sqlite3.connect("db.sqlite3")
-        cursor = conn.cursor()
-
-        query = f"INSERT INTO polls_question (question_text, owner_id) VALUES ('{question_text}', {owner_id})"
-        cursor.execute(query)
-
-        question_id = cursor.lastrowid
-
-        for choice_text in choice_texts:
-            if choice_text.strip():
-                cursor.execute(f"INSERT INTO polls_choice (question_id, choice_text, votes) VALUES ({question_id}, '{choice_text}', 0)")
-
-        conn.commit()
-        conn.close()
-
-        return redirect("polls:detail", pk=question_id)
-
-    return render(request, "polls/create.html")
-"""
-
+#flawed version, both sql injection and broken access control
 @login_required
 def delete_question(request, question_id):
     conn = sqlite3.connect("db.sqlite3")
@@ -224,7 +177,7 @@ def delete_question(request, question_id):
     return redirect("polls:index")
 
 
-"""Flaw 3 fix: use this function instead of the one above. The fix for flaw 1 is also included in the following code.
+"""Flaw 3 and flaw 1 fix: use this function instead of the one above.
 @login_required
 def delete_question(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
@@ -233,6 +186,15 @@ def delete_question(request, question_id):
     #if question.owner != request.user:
         #return HttpResponseForbidden("You are not allowed to delete this question")
 
+    question.delete()
+    messages.success(request, "Poll deleted successfully")
+    return redirect("polls:index")
+"""
+
+"""Independent fix for flaw 3 while still keeping flaw 1:
+@login_required
+def delete_question(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
     question.delete()
     messages.success(request, "Poll deleted successfully")
     return redirect("polls:index")
