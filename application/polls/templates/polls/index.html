@@ -1,3 +1,12 @@
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+  </ul>
+{% endif %}
+
+
 {% if latest_question_list %}
     <ul>
     {% for question in latest_question_list %}
@@ -13,6 +22,8 @@
 {% else %}
     <p>No polls are available.</p>
 {% endif %}
+
+
 
 <p>
     <a href="{% url 'polls:create' %}">Create a new poll</a> |

@@ -17,5 +17,6 @@
 
     {% if request.user == question.owner %}
         <a href="{% url 'polls:delete' question.id %}" style="color: #dc3545;">Delete this poll</a>
+        <a href="{% url 'polls:results' question.id %}" style="color: #000000;">View poll results</a>
     {% endif %}
 {% endblock %}

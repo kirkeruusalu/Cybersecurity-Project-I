@@ -23,15 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-s2f0bwow&%5=a&*dh*i*lbiwj_wpou8r@b8hsp#-w&*(rgvqe7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
-
-#ALLOWED_HOSTS = []
-
-#Fix for flaw 4:
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = []
 
+"""Flaw 4 fix: Use this instead of the current DEBUG=True
+DEBUG = False
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+"""
 
 # Application definition
 
@@ -128,5 +127,30 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = "/polls/login/"
-LOGIN_REDIRECT_URL = "/polls/index/"
+LOGIN_REDIRECT_URL = "/index/"
 LOGOUT_REDIRECT_URL = "/polls/login/"
+
+
+"""Flaw 5 fix: Uncomment this """
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO', 
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+       
+    },
+}
+

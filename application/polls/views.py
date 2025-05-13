@@ -40,14 +40,10 @@ class ResultsView(generic.DetailView):
     model = Question
     template_name = "polls/results.html"
 
-    """Flaw 1: comment this out to fix flaw"""
    
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        """
-        if self.object.owner != request.user:
-            raise PermissionError("You are not allowed to view the results of this question.")
-        """
+        
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
     
@@ -56,7 +52,10 @@ class CustomLoginView(LoginView):
     template_name = "polls/registration/login.html"
 
     def form_valid(self, form):
-        logger.info(f"User '{form.get_user()}', logged in.")
+        user = form.get_user()
+        logger.info(f"User '{user} logged in.")
+        return super().form_valid(form)
+
 
 class CustomLogoutView(LogoutView):
     template_name = "polls/registration/login.html"
@@ -86,6 +85,7 @@ def vote(request, question_id):
     else:
         selected_choice.votes = F("votes") + 1
         selected_choice.save()
+        logger.info(f"User '{request.user.username}' voted on question ID {question.id}, choice ID {selected_choice.id}")
         return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
 
 
@@ -102,8 +102,27 @@ def register(request):
             messages.error(request, "Username already exists.")
             logger.warning(f"Failed registration: username '{username}' already exists")
         else:
-            """flaw 3 fix:
-            """
+            return redirect("polls:index")
+
+    return render(request, "polls/registration/register.html")
+
+
+"""
+Flaw 2 fix: use this instead of the previous register function:
+def register(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password1 = request.POST.get("password1")
+        password2 = request.POST.get("password2")
+
+        if password1 != password2:
+            messages.error(request, "Passwords do not match.")
+            logger.warning(f"Failed registration: password mismatch for '{username}'")
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            logger.warning(f"Failed registration: username '{username}' already exists")
+        else:
+            
             try:
                 validate_password(password1)
                 user = User.objects.create_user(username=username, password=password1)
@@ -116,7 +135,7 @@ def register(request):
                 logger.warning(f"Failed registration for '{username}': {e.messages}")
 
     return render(request, "polls/registration/register.html")
-
+"""
 
 @login_required
 def search_questions(request):
@@ -125,7 +144,6 @@ def search_questions(request):
     if not search_term:
         return render(request, "polls/search.html", {"results": []})
 
-    # VULNERABLE TO SQL INJECTION - Direct string concatenation
     query = f"SELECT * FROM polls_question WHERE question_text LIKE '%{search_term}%'"
     conn = sqlite3.connect("db.sqlite3")
     cursor = conn.cursor()
@@ -133,14 +151,22 @@ def search_questions(request):
     results = cursor.fetchall()
     conn.close()
 
-    # FIX: Use Django ORM instead
-    """
-    results = Question.objects.filter(
-        question_text__icontains=search_term
-    )
-    """
     return render(request, "polls/search_results.html", {"results": results})
 
+
+"""Flaw 3: replace the previous function with this one to fix:
+@login_required
+def search_questions(request):
+    search_term = request.GET.get("q", "").strip()
+
+    if not search_term:
+        return render(request, "polls/search.html", {"results": []})
+    
+    results = Question.objects.filter(
+        question_text__icontains=search_term)
+
+    return render(request, "polls/search_results.html", {"results": results})
+"""
 
 @login_required
 def create_question(request):
@@ -158,14 +184,56 @@ def create_question(request):
     return render(request, "polls/create.html")
 
 
+"""Flaw 3: Use this instead of the previous create_question function to fix flaw
+@login_required
+def create_question(request):
+    if request.method == "POST":
+        question_text = request.POST.get("question_text")
+        choice_texts = request.POST.getlist("choice_text[]")
+        owner_id = request.user.id
+
+        conn = sqlite3.connect("db.sqlite3")
+        cursor = conn.cursor()
+
+        query = f"INSERT INTO polls_question (question_text, owner_id) VALUES ('{question_text}', {owner_id})"
+        cursor.execute(query)
+
+        question_id = cursor.lastrowid
+
+        for choice_text in choice_texts:
+            if choice_text.strip():
+                cursor.execute(f"INSERT INTO polls_choice (question_id, choice_text, votes) VALUES ({question_id}, '{choice_text}', 0)")
+
+        conn.commit()
+        conn.close()
+
+        return redirect("polls:detail", pk=question_id)
+
+    return render(request, "polls/create.html")
+"""
+
+@login_required
+def delete_question(request, question_id):
+    conn = sqlite3.connect("db.sqlite3")
+    cursor = conn.cursor()
+    query = f"DELETE FROM polls_question WHERE id = {question_id}"
+    cursor.execute(query)
+    conn.commit()
+    conn.close()
+    messages.success(request, "Poll deleted successfully")
+    return redirect("polls:index")
+
+
+"""Flaw 3 fix: use this function instead of the one above. The fix for flaw 1 is also included in the following code.
 @login_required
 def delete_question(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
 
-    # Flaw 1: comment this out to fix flaw
-    if question.owner != request.user:
-        return HttpResponseForbidden("You are not allowed to delete this question")
+    #Flaw 1: comment this out to fix flaw
+    #if question.owner != request.user:
+        #return HttpResponseForbidden("You are not allowed to delete this question")
 
     question.delete()
-    logger.info(f"Question ID {question_id} deleted by '{request.user}'")
+    messages.success(request, "Poll deleted successfully")
     return redirect("polls:index")
+"""
